@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse, request
-from flask import Response
+from flask import Response, send_from_directory
 from models.file import FileModel
 import os
 import time
@@ -20,16 +20,17 @@ class File(Resource):
     atributos.add_argument('file_name', type=str, required=True,
                            help="The field 'file' cannot be left blank.")
 
-    def get(self, file_name):
-        file = File.find_file(file_name)
+    def get(self, file_id):
+        file = FileModel.find_file(file_id)
         if file:
-            return file.json()
+            # return file.json()
+            return Response(send_from_directory(DIR, file.file_name, as_attachment=True))
         return None
 
-    def post(self, file_name):
+    def post(self, file_id=""):
         archive = request.files.get("meuArquivo")
-        id = str(time.time()) + str(archive.filename)
-        archive.save(DIR + id)
+        id = str(time.time())
+        archive.save(DIR + str(archive.filename))
 
         file = FileModel(str(id), str(archive.filename))
 
@@ -43,21 +44,22 @@ class File(Resource):
                         'window.onload = () => { window.location.replace("/");}'
                         '</script>', content_type='text/html')
 
-    def put(self, file_name):
-        file = FileModel.find_file(file_name)
+    def put(self, file_id):
+        file = FileModel.find_file(file_id)
         if file:
-            os.remove(DIR + file_name)
+            os.remove(DIR + file.file_name)
             archive = request.files.get("meuArquivo")
+            file.update_file(file_id, archive.filename)
             archive.save(DIR + str(archive.filename))
             return 200
 
         return 500
 
-    def delete(self, file_name):
-        file = FileModel.find_file(file_name)
+    def delete(self, file_id):
+        file = FileModel.find_file(file_id)
         if file:
             file.delete_file()
-            os.remove(DIR + file_name)
+            os.remove(DIR + file.file_name)
             return {'message': 'File deleted.'}
         return {'message': 'File not found.'}, 404
 

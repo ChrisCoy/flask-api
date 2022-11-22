@@ -31,3 +31,8 @@ class FileModel(banco.Model):
     def delete_file(self):
         banco.session.delete(self)
         banco.session.commit()
+
+    def update_file(self, file_id, file_name):
+        self.file_id = file_id
+        self.file_name = file_name
+        banco.session.commit()
