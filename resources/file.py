@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse, request
-from flask import Response, send_from_directory
+from flask import Response, send_file
 from models.file import FileModel
 import os
 import time
@@ -10,9 +10,7 @@ DIR = "./arquivos/"
 
 class Files(Resource):
     def get(self):
-        # SELECT * FROM files
         return {'all_files': [file.json() for file in FileModel.query.all()]}
-        # return archive_name, 200
 
 
 class File(Resource):
@@ -24,7 +22,8 @@ class File(Resource):
         file = FileModel.find_file(file_id)
         if file:
             # return file.json()
-            return Response(send_from_directory(DIR, file.file_name, as_attachment=True))
+            # return Response(send_from_directory(DIR, file.file_name, as_attachment=True))
+            return send_file(DIR + file.file_name)
         return None
 
     def post(self, file_id=""):
